@@ -1,0 +1,3 @@
+rootProject.name = 'smartqueue'
+
+include 'services:config-server'
