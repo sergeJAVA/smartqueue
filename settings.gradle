@@ -1,3 +1,3 @@
 rootProject.name = 'smartqueue'
 
-include 'services:config-server', 'services:discovery'
+include 'services:config-server', 'services:discovery', 'services:auth'
