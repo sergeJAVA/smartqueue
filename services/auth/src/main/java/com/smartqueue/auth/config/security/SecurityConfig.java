@@ -1,9 +1,12 @@
 package com.smartqueue.auth.config.security;
 
-import com.smartqueue.auth.security.UserDetailsServiceImpl;
+import com.smartqueue.auth.entrypoint.CustomAuthenticationEntryPoint;
+import com.smartqueue.auth.exception.handler.CustomAccessDeniedHandler;
+import com.smartqueue.auth.security.filter.JwtRequestFilter;
+import com.smartqueue.auth.security.service.UserDetailsServiceImpl;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -16,11 +19,16 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final JwtRequestFilter jwtRequestFilter;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -28,14 +36,16 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request ->
                 request.requestMatchers(
-                        "/api/v1/auth/**").permitAll()
-                                .anyRequest().authenticated())
+                        "/api/v1/auth/signIn", "/api/v1/auth/signUp").permitAll()
+                        .anyRequest().hasRole("ADMIN"))
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exception ->
-                        exception.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+                        exception.authenticationEntryPoint(customAuthenticationEntryPoint)
+                                .accessDeniedHandler(customAccessDeniedHandler))
                 .headers(headers ->
                         headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
