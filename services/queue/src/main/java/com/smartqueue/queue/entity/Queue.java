@@ -14,7 +14,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -39,12 +38,9 @@ public class Queue {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "max_slots", nullable = false)
-    private Integer maxSlots;
-
-    @CreatedDate
+    @Builder.Default
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @OneToMany(mappedBy = "queue", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default

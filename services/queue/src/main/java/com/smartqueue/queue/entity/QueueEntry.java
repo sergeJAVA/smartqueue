@@ -52,4 +52,8 @@ public class QueueEntry {
     @JoinColumn(name = "queue_id")
     private Queue queue;
 
+    @Column(name = "active")
+    @Builder.Default
+    private boolean isActive = true;
+
 }

@@ -88,11 +88,11 @@ public class JwtAuthFilter implements GatewayFilter {
     }
 
     private Long extractUserId(String token) {
-        return (Long) Jwts.parser()
+        return Jwts.parser()
                 .verifyWith(Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8)))
                 .build()
                 .parseSignedClaims(token)
-                .getPayload().get("userId");
+                .getPayload().get("userId", Long.class);
     }
 
 }
