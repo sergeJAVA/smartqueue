@@ -18,7 +18,7 @@ import java.nio.charset.StandardCharsets;
 
 @Component
 @Slf4j
-public class JwtAuthFilter implements GatewayFilter{
+public class JwtAuthFilter implements GatewayFilter {
 
     @Value("${jwt.secret}")
     private String secret;
