@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/smartqueueDB
+    url: jdbc:postgresql://localhost:5433/queueDB
     username: user
     password: pass
   jpa:

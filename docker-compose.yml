@@ -2,9 +2,9 @@ services:
 
   postgres:
     image: postgres:17.4
-    container_name: postgresDB
+    container_name: authDB
     environment:
-      POSTGRES_DB: smartqueueDB
+      POSTGRES_DB: authDB
       POSTGRES_USER: user
       POSTGRES_PASSWORD: pass
       PGDATA: /var/lib/postgresql/data
@@ -13,5 +13,19 @@ services:
     ports:
       - "5432:5432"
 
+  postgresQueue:
+    image: postgres:17.4
+    container_name: queueDB
+    environment:
+      POSTGRES_DB: queueDB
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+      - postgresQueue:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
 volumes:
   postgres:
+  postgresQueue:

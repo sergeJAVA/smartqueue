@@ -34,7 +34,7 @@ public class QueueEvent {
     @Column(name = "type", nullable = false)
     private EventType type;
 
-    @Column(name = "timestamp", nullable = false)
+    @Column(name = "event_timestamp", nullable = false)
     @Builder.Default
     private Instant timestamp = Instant.now();
 
