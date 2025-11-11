@@ -1,5 +1,6 @@
-package com.smartqueue.queue.service;
+package com.smartqueue.queue.service.impl;
 
+import com.smartqueue.queue.constant.EventType;
 import com.smartqueue.queue.dto.CreateQueueRequest;
 import com.smartqueue.queue.dto.QueueDto;
 import com.smartqueue.queue.dto.QueueEntryDto;
@@ -7,12 +8,14 @@ import com.smartqueue.queue.dto.mapper.QueueEntryMapper;
 import com.smartqueue.queue.dto.mapper.QueueMapper;
 import com.smartqueue.queue.entity.Queue;
 import com.smartqueue.queue.entity.QueueEntry;
+import com.smartqueue.queue.entity.QueueEvent;
 import com.smartqueue.queue.exception.QueueNotFoundException;
 import com.smartqueue.queue.exception.UserAlreadyInQueueException;
 import com.smartqueue.queue.repository.QueueEntryRepository;
 import com.smartqueue.queue.repository.QueueEventRepository;
 import com.smartqueue.queue.repository.QueueRepository;
-import jakarta.transaction.Transactional;
+import com.smartqueue.queue.service.QueueService;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -31,6 +34,26 @@ public class QueueServiceImpl implements QueueService {
     @Override
     @Transactional
     public QueueEntryDto joinQueue(Long queueId, Long userId) {
+        QueueEntry savedEntry = saveNewQueueEntry(queueId, userId);
+        QueueEvent savedEvent = saveNewQueueEvent(savedEntry);
+
+        eventPublisher.publishEvent(savedEvent);
+
+        return QueueEntryMapper.toDto(savedEntry);
+    }
+
+    @Override
+    @Transactional
+    public QueueDto createQueue(CreateQueueRequest request) {
+        Queue queue = Queue.builder()
+                .name(request.getName())
+                .description(request.getDescription())
+                .build();
+        Queue savedQueue = queueRepository.save(queue);
+        return QueueMapper.toDto(savedQueue);
+    }
+
+    private QueueEntry saveNewQueueEntry(Long queueId, Long userId) {
         Queue queue = queueRepository.findById(queueId)
                 .orElseThrow(() -> new QueueNotFoundException("The queue with ID " + queueId + " not found!"));
 
@@ -45,20 +68,17 @@ public class QueueServiceImpl implements QueueService {
                 .queue(queue)
                 .build();
 
-        QueueEntry saved = entryRepository.save(newQueueEntry);
-
-        return QueueEntryMapper.toDto(saved);
+        return entryRepository.save(newQueueEntry);
     }
 
-    @Override
-    @Transactional
-    public QueueDto createQueue(CreateQueueRequest request) {
-        Queue queue = Queue.builder()
-                .name(request.getName())
-                .description(request.getDescription())
+    private QueueEvent saveNewQueueEvent(QueueEntry entry) {
+        QueueEvent event = QueueEvent.builder()
+                .queueId(entry.getQueue().getId())
+                .entryId(entry.getId())
+                .type(EventType.JOINED)
                 .build();
-        Queue savedQueue = queueRepository.save(queue);
-        return QueueMapper.toDto(savedQueue);
+
+        return eventRepository.save(event);
     }
 
 }

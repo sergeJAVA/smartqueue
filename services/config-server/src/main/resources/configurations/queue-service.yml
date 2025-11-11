@@ -17,3 +17,8 @@ spring:
     enabled: true
     user: ${spring.datasource.username}
     password: ${spring.datasource.password}
+
+smartqueue:
+  kafka:
+    topic: queue-event
+    bootstrap-server: localhost:9092

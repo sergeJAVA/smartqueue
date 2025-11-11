@@ -1,5 +1,6 @@
 package com.smartqueue.queue.handler;
 
+import com.smartqueue.queue.exception.QueueEventNotFoundException;
 import com.smartqueue.queue.exception.QueueNotFoundException;
 import com.smartqueue.queue.exception.UserAlreadyInQueueException;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(QueueNotFoundException.class)
     public ResponseEntity<String> queueNotFound(QueueNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(QueueEventNotFoundException.class)
+    public ResponseEntity<String> queueEventNotFound(QueueEventNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
 }
