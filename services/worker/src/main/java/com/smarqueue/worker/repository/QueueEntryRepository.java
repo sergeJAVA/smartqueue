@@ -1,7 +1,6 @@
-package com.smartqueue.queue.repository;
+package com.smarqueue.worker.repository;
 
-import com.smartqueue.queue.constant.EntryStatus;
-import com.smartqueue.queue.entity.QueueEntry;
+import com.smarqueue.worker.entity.QueueEntry;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -11,8 +10,5 @@ public interface QueueEntryRepository extends JpaRepository<QueueEntry, Long> {
 
     @EntityGraph(attributePaths = {"queue"})
     Optional<QueueEntry> findByUserIdAndIsActiveTrueAndQueue_Id(Long userId, Long id);
-
-    @EntityGraph(attributePaths = {"queue"})
-    Optional<QueueEntry> findFirstByQueue_IdAndIsActiveTrueAndStatusOrderByJoinedAtAsc(Long id, EntryStatus status);
 
 }

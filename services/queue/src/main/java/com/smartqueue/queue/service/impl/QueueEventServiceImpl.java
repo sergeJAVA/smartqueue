@@ -4,10 +4,9 @@ import com.smartqueue.queue.entity.QueueEvent;
 import com.smartqueue.queue.exception.QueueEventNotFoundException;
 import com.smartqueue.queue.repository.QueueEventRepository;
 import com.smartqueue.queue.service.QueueEventService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -16,7 +15,7 @@ public class QueueEventServiceImpl implements QueueEventService {
     private final QueueEventRepository queueEventRepository;
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void markEventPublished(Long eventId) {
         QueueEvent saved = queueEventRepository.findById(eventId)
                 .orElseThrow(() -> new QueueEventNotFoundException("QueueEvent with ID " + eventId + " not found!"));

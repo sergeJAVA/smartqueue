@@ -7,8 +7,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 
 @Service
@@ -20,7 +18,6 @@ public class QueueEventListenerService {
     private final QueueEventService eventService;
     private final KafkaProperties kafkaProperties;
 
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional
     public void sendEvent(QueueEvent queueEvent) {
         kafkaTemplate.send(kafkaProperties.getKafkaGeneralTopic(), KafkaProperties.KAFKA_QUEUE_EVENT_KEY, queueEvent);

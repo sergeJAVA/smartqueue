@@ -1,5 +1,6 @@
 package com.smartqueue.queue.service.impl;
 
+import com.smartqueue.queue.constant.EntryStatus;
 import com.smartqueue.queue.constant.EventType;
 import com.smartqueue.queue.dto.CreateQueueRequest;
 import com.smartqueue.queue.dto.QueueDto;
@@ -14,10 +15,10 @@ import com.smartqueue.queue.exception.UserAlreadyInQueueException;
 import com.smartqueue.queue.repository.QueueEntryRepository;
 import com.smartqueue.queue.repository.QueueEventRepository;
 import com.smartqueue.queue.repository.QueueRepository;
+import com.smartqueue.queue.service.QueueEventListenerService;
 import com.smartqueue.queue.service.QueueService;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -29,7 +30,7 @@ public class QueueServiceImpl implements QueueService {
     private final QueueEntryRepository entryRepository;
     private final QueueEventRepository eventRepository;
     private final QueueRepository queueRepository;
-    private final ApplicationEventPublisher eventPublisher;
+    private final QueueEventListenerService queueEventListenerService;
 
     @Override
     @Transactional
@@ -37,8 +38,7 @@ public class QueueServiceImpl implements QueueService {
         QueueEntry savedEntry = saveNewQueueEntry(queueId, userId);
         QueueEvent savedEvent = saveNewQueueEvent(savedEntry);
 
-        eventPublisher.publishEvent(savedEvent);
-
+        queueEventListenerService.sendEvent(savedEvent);
         return QueueEntryMapper.toDto(savedEntry);
     }
 
@@ -51,6 +51,17 @@ public class QueueServiceImpl implements QueueService {
                 .build();
         Queue savedQueue = queueRepository.save(queue);
         return QueueMapper.toDto(savedQueue);
+    }
+
+    @Override
+    @Transactional
+    public QueueEntryDto callNext(Long queueId) {
+        QueueEntry queueEntry = entryRepository.findFirstByQueue_IdAndIsActiveTrueAndStatusOrderByJoinedAtAsc(queueId, EntryStatus.WAITING)
+                .orElseThrow(() -> new QueueNotFoundException("Queue with ID " + queueId + " was not found" +
+                        " or there are no active entries in the queue."));
+        QueueEvent event = saveCalledQueueEvent(queueEntry);
+        queueEventListenerService.sendEvent(event);
+        return QueueEntryMapper.toDto(queueEntry);
     }
 
     private QueueEntry saveNewQueueEntry(Long queueId, Long userId) {
@@ -76,6 +87,16 @@ public class QueueServiceImpl implements QueueService {
                 .queueId(entry.getQueue().getId())
                 .entryId(entry.getId())
                 .type(EventType.JOINED)
+                .build();
+
+        return eventRepository.save(event);
+    }
+
+    private QueueEvent saveCalledQueueEvent(QueueEntry entry) {
+        QueueEvent event = QueueEvent.builder()
+                .queueId(entry.getQueue().getId())
+                .entryId(entry.getId())
+                .type(EventType.CALLED)
                 .build();
 
         return eventRepository.save(event);

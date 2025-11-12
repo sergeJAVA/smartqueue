@@ -10,4 +10,6 @@ public interface QueueService {
 
     QueueDto createQueue(CreateQueueRequest request);
 
+    QueueEntryDto callNext(Long queueId);
+
 }
