@@ -35,8 +35,7 @@ public class KafkaMessageProcessorImpl implements KafkaMessageProcessor {
         switch (event.getType()) {
             case CALLED -> changeQueueEntryStatusToCalled(event);
             case SERVED -> changeQueueEntryStatusToServed(event);
-            case JOINED -> log.info("The message received from Kafka is" +
-                    " of the JOINED type and does not require processing.");
+            case JOINED -> processJoinedStatus(event);
             default -> log.warn("Received a message with an unexpected type!");
         }
     }
@@ -74,6 +73,15 @@ public class KafkaMessageProcessorImpl implements KafkaMessageProcessor {
             String key = EntryStatus.SERVED.getName();
             kafkaTemplate.send(KafkaProperties.KAFKA_NOTIFICATION_TOPIC, key, event);
             log.info("The status of the entry has been changed to {} and notification-service has been notified.", key);
+        });
+    }
+
+    private void processJoinedStatus(QueueEvent event) {
+        Optional<QueueEntry> optionalEntry = queueEntryRepository.findById(event.getEntryId());
+        optionalEntry.ifPresent(entry -> {
+            String key = EntryStatus.WAITING.getName();
+            kafkaTemplate.send(KafkaProperties.KAFKA_NOTIFICATION_TOPIC, key, event);
+            log.info("The entry has been added to the queue and notification-service has been notified.");
         });
     }
 
