@@ -24,6 +24,6 @@ public class QueueEntryDto {
 
     private Instant joinedAt;
 
-    private Long estimatedWaitTime;
+    private Long queueId;
 
 }

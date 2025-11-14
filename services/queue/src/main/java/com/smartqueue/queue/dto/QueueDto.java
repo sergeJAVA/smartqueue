@@ -1,6 +1,5 @@
 package com.smartqueue.queue.dto;
 
-import com.smartqueue.queue.entity.QueueEntry;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

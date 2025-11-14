@@ -1,5 +1,6 @@
 package com.smartqueue.queue.handler;
 
+import com.smartqueue.queue.exception.QueueEntryNotFoundException;
 import com.smartqueue.queue.exception.QueueEventNotFoundException;
 import com.smartqueue.queue.exception.QueueNotFoundException;
 import com.smartqueue.queue.exception.UserAlreadyInQueueException;
@@ -23,6 +24,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(QueueEventNotFoundException.class)
     public ResponseEntity<String> queueEventNotFound(QueueEventNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(QueueEntryNotFoundException.class)
+    public ResponseEntity<String> queueEntryNotFound(QueueEntryNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 

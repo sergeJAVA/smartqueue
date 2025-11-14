@@ -10,6 +10,7 @@ import com.smartqueue.queue.dto.mapper.QueueMapper;
 import com.smartqueue.queue.entity.Queue;
 import com.smartqueue.queue.entity.QueueEntry;
 import com.smartqueue.queue.entity.QueueEvent;
+import com.smartqueue.queue.exception.QueueEntryNotFoundException;
 import com.smartqueue.queue.exception.QueueNotFoundException;
 import com.smartqueue.queue.exception.UserAlreadyInQueueException;
 import com.smartqueue.queue.repository.QueueEntryRepository;
@@ -64,6 +65,16 @@ public class QueueServiceImpl implements QueueService {
         return QueueEntryMapper.toDto(queueEntry);
     }
 
+    @Override
+    @Transactional
+    public QueueEntryDto serve(Long entryId) {
+        QueueEntry entry = entryRepository.findByIdAndIsActiveTrueAndStatus(entryId, EntryStatus.CALLED)
+                .orElseThrow(() -> new QueueEntryNotFoundException(String.format("QueueEntry with ID %d not found or " +
+                        "is inactive or has not yet been called!", entryId)));
+        queueEventListenerService.sendEvent(saveServedQueueEvent(entry));
+        return QueueEntryMapper.toDto(entry);
+    }
+
     private QueueEntry saveNewQueueEntry(Long queueId, Long userId) {
         Queue queue = queueRepository.findById(queueId)
                 .orElseThrow(() -> new QueueNotFoundException("The queue with ID " + queueId + " not found!"));
@@ -97,6 +108,16 @@ public class QueueServiceImpl implements QueueService {
                 .queueId(entry.getQueue().getId())
                 .entryId(entry.getId())
                 .type(EventType.CALLED)
+                .build();
+
+        return eventRepository.save(event);
+    }
+
+    private QueueEvent saveServedQueueEvent(QueueEntry entry) {
+        QueueEvent event = QueueEvent.builder()
+                .queueId(entry.getQueue().getId())
+                .entryId(entry.getId())
+                .type(EventType.SERVED)
                 .build();
 
         return eventRepository.save(event);

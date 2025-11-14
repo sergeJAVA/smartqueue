@@ -12,4 +12,6 @@ public interface QueueService {
 
     QueueEntryDto callNext(Long queueId);
 
+    QueueEntryDto serve(Long entryId);
+
 }

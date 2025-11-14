@@ -15,4 +15,8 @@ public interface QueueEntryRepository extends JpaRepository<QueueEntry, Long> {
     @EntityGraph(attributePaths = {"queue"})
     Optional<QueueEntry> findFirstByQueue_IdAndIsActiveTrueAndStatusOrderByJoinedAtAsc(Long id, EntryStatus status);
 
+    @EntityGraph(attributePaths = {"queue"})
+    Optional<QueueEntry> findByIdAndIsActiveTrueAndStatus(Long id, EntryStatus status);
+
+
 }

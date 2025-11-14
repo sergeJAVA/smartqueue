@@ -12,8 +12,8 @@ public class QueueEntryMapper {
                 .id(entry.getId())
                 .status(entry.getStatus())
                 .userId(entry.getUserId())
-                .estimatedWaitTime(entry.getEstimatedWaitTime())
                 .joinedAt(entry.getJoinedAt())
+                .queueId(entry.getQueue().getId())
                 .build();
     }
 

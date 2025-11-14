@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @NoArgsConstructor
 public class KafkaProperties {
 
-//    public final static String KAFKA_NOTIFICATION_KEY = "notification-service";
+    public final static String KAFKA_NOTIFICATION_TOPIC = "notifications";
 
     @Value("${smartqueue.kafka.topic}")
     private String kafkaGeneralTopic;
