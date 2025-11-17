@@ -23,7 +23,6 @@ public class KafkaMessageProcessorImpl implements KafkaMessageProcessor {
 
     private final QueueEntryRepository queueEntryRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
-    private final KafkaProperties kafkaProperties;
 
     @Override
     @Transactional
@@ -45,7 +44,7 @@ public class KafkaMessageProcessorImpl implements KafkaMessageProcessor {
         optionalEntry.ifPresent(entry -> {
             entry.setStatus(status);
 
-            String key = status.getName();
+            String key = String.valueOf(entry.getUserId());
             kafkaTemplate.send(KafkaProperties.KAFKA_NOTIFICATION_TOPIC, key, event);
             log.info("The status of the entry has been changed to {} and notification-service has been notified.", key);
         });
@@ -58,7 +57,7 @@ public class KafkaMessageProcessorImpl implements KafkaMessageProcessor {
             long waitSeconds = ChronoUnit.SECONDS.between(entry.getJoinedAt(), Instant.now());
             entry.setEstimatedWaitTime(waitSeconds);
 
-            String key = EntryStatus.CALLED.getName();
+            String key = String.valueOf(entry.getUserId());
             kafkaTemplate.send(KafkaProperties.KAFKA_NOTIFICATION_TOPIC, key, event);
             log.info("The status of the entry has been changed to {} and notification-service has been notified.", key);
         });
@@ -70,7 +69,7 @@ public class KafkaMessageProcessorImpl implements KafkaMessageProcessor {
             entry.setStatus(EntryStatus.SERVED);
             entry.setActive(false);
 
-            String key = EntryStatus.SERVED.getName();
+            String key = String.valueOf(entry.getUserId());
             kafkaTemplate.send(KafkaProperties.KAFKA_NOTIFICATION_TOPIC, key, event);
             log.info("The status of the entry has been changed to {} and notification-service has been notified.", key);
         });
@@ -79,7 +78,7 @@ public class KafkaMessageProcessorImpl implements KafkaMessageProcessor {
     private void processJoinedStatus(QueueEvent event) {
         Optional<QueueEntry> optionalEntry = queueEntryRepository.findById(event.getEntryId());
         optionalEntry.ifPresent(entry -> {
-            String key = EntryStatus.WAITING.getName();
+            String key = String.valueOf(entry.getUserId());
             kafkaTemplate.send(KafkaProperties.KAFKA_NOTIFICATION_TOPIC, key, event);
             log.info("The entry has been added to the queue and notification-service has been notified.");
         });

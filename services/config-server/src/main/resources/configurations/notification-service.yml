@@ -1,0 +1,8 @@
+server:
+  port: 8085
+
+smartqueue:
+  kafka:
+    topic: notifications
+    consumer:
+      group-id: notification-group
