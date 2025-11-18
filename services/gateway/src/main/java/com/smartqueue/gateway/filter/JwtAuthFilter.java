@@ -12,7 +12,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
+
+import java.net.URI;
 
 @Component
 @Slf4j
@@ -26,7 +29,7 @@ public class JwtAuthFilter implements GatewayFilter {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
 
-        if (path.startsWith("/api/auth/") || path.startsWith("/ws/")) {
+        if (path.startsWith("/api/auth/")) {
             return chain.filter(exchange);
         }
 
@@ -41,11 +44,22 @@ public class JwtAuthFilter implements GatewayFilter {
         }
 
         String userId = String.valueOf(jwtService.extractUserId(token));
-        ServerHttpRequest mutated = request.mutate()
-                .header("X-User-Id", userId)
-                .build();
+        ServerHttpRequest.Builder requestBuilder = request.mutate();
 
-        return chain.filter(exchange.mutate().request(mutated).build());
+        if (path.startsWith("/ws")) {
+            URI originalUri = request.getURI();
+
+            URI newUri = UriComponentsBuilder.fromUri(originalUri)
+                    .queryParam("userId", userId)
+                    .build(true)
+                    .toUri();
+
+            requestBuilder.uri(newUri);
+        } else {
+            requestBuilder.header("X-User-Id", userId);
+        }
+
+        return chain.filter(exchange.mutate().request(requestBuilder.build()).build());
     }
 
     private Mono<Void> unauthorized(ServerWebExchange exchange, String message) {

@@ -4,6 +4,7 @@ import com.smartqueue.notification.dto.StompPrincipal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
@@ -19,7 +20,10 @@ public class UserHandshakeInterceptor implements HandshakeInterceptor {
                                    ServerHttpResponse response,
                                    WebSocketHandler wsHandler,
                                    Map<String, Object> attributes) throws Exception {
-        String userId = request.getHeaders().getFirst("X-User-Id");
+        String userId = null;
+
+        ServletServerHttpRequest servletRequest = (ServletServerHttpRequest) request;
+        userId = servletRequest.getServletRequest().getParameter("userId");
 
         if (userId != null && !userId.isEmpty()) {
             attributes.put("user", new StompPrincipal(userId));
@@ -27,7 +31,7 @@ public class UserHandshakeInterceptor implements HandshakeInterceptor {
             return true;
         }
 
-        log.error("Handshake failed: 'X-User-Id' header is missing or empty.");
+        log.error("Handshake failed: 'userId' parameter is missing or empty.");
         return false;
     }
 

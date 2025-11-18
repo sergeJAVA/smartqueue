@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS notifications(
+    id BIGSERIAL PRIMARY KEY,
+    user_id VARCHAR(255) NOT NULL,
+    message VARCHAR(255) NOT NULL,
+    "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL,
+    type VARCHAR(50) NOT NULL
+);
