@@ -26,6 +26,19 @@ services:
     ports:
       - "5433:5432"
 
+  notificationPostgres:
+    image: postgres:17.4
+    container_name: notificationDB
+    environment:
+      POSTGRES_DB: notification
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+      - notificationPostgres:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+
   kafka:
     image: apache/kafka:latest
     container_name: kafka
@@ -50,3 +63,4 @@ services:
 volumes:
   postgres:
   postgresQueue:
+  notificationPostgres:
