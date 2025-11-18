@@ -1,9 +1,9 @@
 package com.smartqueue.gateway.filter;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
+import com.smartqueue.gateway.service.JwtService;
+import com.smartqueue.gateway.util.TokenUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -14,14 +14,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.nio.charset.StandardCharsets;
-
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class JwtAuthFilter implements GatewayFilter {
 
-    @Value("${jwt.secret}")
-    private String secret;
+    private final JwtService jwtService;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -32,17 +30,17 @@ public class JwtAuthFilter implements GatewayFilter {
             return chain.filter(exchange);
         }
 
-        String token = extractToken(request);
+        String token = TokenUtils.extractToken(request);
 
         if (token == null) {
             return unauthorized(exchange, "Missing JWT token");
         }
 
-        if (!validateToken(token)) {
+        if (!jwtService.validateToken(token)) {
             return unauthorized(exchange, "Invalid or expired JWT token");
         }
 
-        String userId = String.valueOf(extractUserId(token));
+        String userId = String.valueOf(jwtService.extractUserId(token));
         ServerHttpRequest mutated = request.mutate()
                 .header("X-User-Id", userId)
                 .build();
@@ -63,36 +61,6 @@ public class JwtAuthFilter implements GatewayFilter {
 
         DataBuffer buffer = exchange.getResponse().bufferFactory().wrap(json.getBytes());
         return exchange.getResponse().writeWith(Mono.just(buffer));
-    }
-
-    private String extractToken(ServerHttpRequest request) {
-        String header = request.getHeaders().getFirst("Authorization");
-        if (header != null && header.startsWith("Bearer ")) {
-            return header.substring(7);
-        }
-        return null;
-    }
-
-    private boolean validateToken(String token) {
-        try {
-            Jwts.parser()
-                    .verifyWith(Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8)))
-                    .build()
-                    .parseSignedClaims(token);
-            log.info("Token is validated.");
-            return true;
-        } catch (Exception e) {
-            log.info("Token is invalid.");
-            return false;
-        }
-    }
-
-    private Long extractUserId(String token) {
-        return Jwts.parser()
-                .verifyWith(Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8)))
-                .build()
-                .parseSignedClaims(token)
-                .getPayload().get("userId", Long.class);
     }
 
 }
