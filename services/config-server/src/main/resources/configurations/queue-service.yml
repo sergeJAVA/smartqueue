@@ -6,6 +6,7 @@ spring:
     url: jdbc:postgresql://localhost:5433/queueDB
     username: user
     password: pass
+    driverClassName: org.postgresql.Driver
   jpa:
     database: POSTGRESQL
     database-platform: org.hibernate.dialect.PostgreSQLDialect

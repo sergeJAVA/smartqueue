@@ -6,6 +6,7 @@ spring:
     url: jdbc:postgresql://localhost:5434/notification
     username: user
     password: pass
+    driverClassName: org.postgresql.Driver
   jpa:
     show-sql: true
     database: POSTGRESQL
