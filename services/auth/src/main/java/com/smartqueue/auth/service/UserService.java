@@ -2,7 +2,7 @@ package com.smartqueue.auth.service;
 
 import com.smartqueue.auth.dto.UserDto;
 import com.smartqueue.auth.dto.request.CreateUserRequest;
-import com.smartqueue.auth.entity.User;
+import com.smartqueue.auth.dto.request.SearchUsersRequest;
 import org.springframework.data.domain.Page;
 
 public interface UserService {
@@ -11,6 +11,6 @@ public interface UserService {
 
     Boolean deleteUserById(Long id);
 
-    Page<User> findAll();
+    Page<UserDto> findAll(SearchUsersRequest request);
 
 }
