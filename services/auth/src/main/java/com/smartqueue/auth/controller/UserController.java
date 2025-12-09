@@ -41,7 +41,7 @@ public class UserController {
         return ResponseEntity.notFound().build();
     }
 
-    @GetMapping
+    @PostMapping("/search")
     public ResponseEntity<PageDto<UserDto>> searchUsers(@RequestBody SearchUsersRequest request) {
         Pagination pagination = request.getPagination();
         pagination.setPage(Math.max(0, pagination.getPage()));
