@@ -10,27 +10,29 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Locale;
 
 @UtilityClass
 public class UserSpecifications {
 
     public static Specification<User> getSpecification(SearchUsersRequest request) {
-        if (isUsernameValid(request.getUsername())
-                && isRolesValid(request.getRoles())) {
+        Specification<User> specification = Specification.allOf();
 
-            return Specification.allOf(specificationUsername(request),
-                    specificationHasAnyRole(request.getRoles()));
-        } else if (isUsernameValid(request.getUsername())
+        if (!isUsernameValid(request.getUsername())
                 && !isRolesValid(request.getRoles())) {
-
-            return specificationUsername(request);
-        } else if (!isUsernameValid(request.getUsername())
-                && isRolesValid(request.getRoles())) {
-
-            return specificationHasAnyRole(request.getRoles());
-        } else {
             return null;
         }
+
+        if (isUsernameValid(request.getUsername())) {
+            specification = specification.and(specificationUsername(request));
+        }
+
+        if (isRolesValid(request.getRoles())) {
+            request.setRoles(rolesToUpperCase(request.getRoles()));
+            specification = specification.and(specificationHasAnyRole(request.getRoles()));
+        }
+
+        return specification;
     }
 
     public static Specification<User> specificationUsername(SearchUsersRequest request) {
@@ -55,6 +57,12 @@ public class UserSpecifications {
 
     private boolean isUsernameValid(String username) {
         return StringUtils.hasText(username);
+    }
+
+    private List<String> rolesToUpperCase(List<String> roles) {
+        return roles.stream()
+                .map(role -> role.toUpperCase(Locale.ROOT))
+                .toList();
     }
 
 }
