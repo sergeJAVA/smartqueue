@@ -1,9 +1,11 @@
 package com.smartqueue.queue.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smartqueue.queue.constant.EventType;
 import com.smartqueue.queue.dto.CreateQueueRequest;
 import com.smartqueue.queue.dto.JoinQueueRequest;
+import com.smartqueue.queue.dto.QueueDto;
 import com.smartqueue.queue.entity.Queue;
 import com.smartqueue.queue.entity.QueueEvent;
 import com.smartqueue.queue.repository.QueueRepository;
@@ -33,6 +35,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -129,6 +132,39 @@ class QueueControllerTest extends TestContainer {
                 assertThat(event.getType()).isEqualTo(EventType.JOINED);
             }
         });
+    }
+
+    @Test
+    void callNext_Success() throws Exception {
+        CreateQueueRequest createQueueRequest = new CreateQueueRequest("Test queue", "test");
+
+        QueueDto queue = objectMapper.readValue(mockMvc.perform(post(baseURL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createQueueRequest)))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(),
+                new TypeReference<QueueDto>() {});
+
+        JoinQueueRequest joinQueueRequest = new JoinQueueRequest(queue.getId());
+
+        mockMvc.perform(post(baseURL + "/join")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(joinQueueRequest))
+                        .header("X-User-Id", 1))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(patch(baseURL + "/call-next/" + queue.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(1))
+                .andExpect(jsonPath("$.queueId").value(queue.getId()))
+                .andExpect(jsonPath("$.status").value("WAITING"));
+    }
+
+    @Test
+    void callNext_Failure() throws Exception {
+        mockMvc.perform(patch(baseURL + "/call-next/" + 444))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$").value("Queue with ID " + 444 + " was not found" +
+                        " or there are no active entries in the queue."));
     }
 
 }
