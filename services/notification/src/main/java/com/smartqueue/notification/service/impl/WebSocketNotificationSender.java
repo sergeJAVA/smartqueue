@@ -22,7 +22,9 @@ public class WebSocketNotificationSender implements NotificationSenderService {
                 notification.getUserId(),
                 destination,
                 notification);
-        log.info("Notification sent to user with id {}", notification.getUserId());
+
+        log.info("Notification sent to user '{}' at destination '/user/{}/queue/notifications'",
+                notification.getUserId(), notification.getUserId());
     }
 
 }

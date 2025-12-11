@@ -1,5 +1,6 @@
 package com.smartqueue.notification.config.websocket;
 
+import com.smartqueue.notification.handler.CustomHandshakeHandler;
 import com.smartqueue.notification.interceptor.UserHandshakeInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +19,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .addInterceptors(userHandshakeInterceptor);
+                .setAllowedOriginPatterns("*")
+                .setHandshakeHandler(new CustomHandshakeHandler())
+                .addInterceptors(userHandshakeInterceptor)
+                .withSockJS();
     }
 
     @Override
